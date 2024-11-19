@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teachable Machine Image Recognition</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    img {
+      max-width: 300px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Recognition using Teachable Machine</h1>
+  <div>Teachable Machine Image Model</div>
+<!-- 이미지 업로드를 위한 파일 입력 필드 -->
+<input type="file" id="imageInput" accept="image/*">
+<div id="preview">
+    <!-- 업로드된 이미지를 미리보기로 표시할 이미지 요소 -->
+    <img src="intro.png" id="uploadedImage" alt="Uploaded Image" style="max-width: 300px; margin-top: 10px;">
+</div>
+<!-- 모델의 예측 결과를 표시할 컨테이너 -->
+<div id="label-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<script type="text/javascript">
+    // Teachable Machine에서 생성된 모델 경로
+    const URL = "./my_model/";
+
+    let model, labelContainer, maxPredictions;
+
+    // 모델을 초기화하고 예측 레이블 컨테이너를 설정하는 함수
+    async function init() {
+        const modelURL = URL + "model.json"; // 모델 정의 파일 경로
+        const metadataURL = URL + "metadata.json"; // 메타데이터 파일 경로
+
+        try {
+            // 모델과 메타데이터를 비동기로 로드
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses(); // 모델 클래스 개수 가져오기
+
+            // 예측 결과를 표시할 레이블 컨테이너 초기화
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) {
+                labelContainer.appendChild(document.createElement("div")); // 결과를 표시할 div 추가
+            }
+        } catch (error) {
+            console.error("Model loading failed:", error); // 모델 로드 실패 시 오류 출력
+        }
+    }
+
+    // 사용자가 이미지를 업로드했을 때 처리하는 함수
+    function handleImageUpload(event) {
+        const file = event.target.files[0]; // 업로드된 파일 가져오기
+        if (!file) return; // 파일이 없으면 아무 작업도 하지 않음
+
+        const imgElement = document.getElementById("uploadedImage");
+        imgElement.src = URL.createObjectURL(file); // 파일을 이미지 경로로 변환 후 표시
+
+        // 이미지 로드 완료 후 예측 수행
+        imgElement.onload = function () {
+            predict(imgElement); // 업로드된 이미지를 모델에 입력
+        };
+    }
+
+    // 모델에 이미지를 입력하고 예측 결과를 화면에 표시하는 함수
+    async function predict(imageElement) {
+        // 모델을 통해 이미지를 예측
+        const prediction = await model.predict(imageElement);
+
+        // 각 클래스별 예측 확률을 화면에 표시
+        for (let i = 0; i < maxPredictions; i++) {
+            const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction; // 결과를 label-container에 추가
+        }
+    }
+
+    // 스크립트가 로드될 때 모델을 초기화
+    init();
+
+    // 파일 입력 필드에 이벤트 리스너 추가 (이미지 업로드 처리)
+    document.getElementById("imageInput").addEventListener("change", handleImageUpload);
+</script>
+
+</body>
+</html>
