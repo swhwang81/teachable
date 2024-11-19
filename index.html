@@ -34,7 +34,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 <script type="text/javascript">
     // Teachable Machine에서 생성된 모델 경로
-    const URL = "./my_model/";
+    const URL = "my_model/";
 
     let model, labelContainer, maxPredictions;
 
@@ -47,7 +47,7 @@
             // 모델과 메타데이터를 비동기로 로드
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses(); // 모델 클래스 개수 가져오기
-
+             console.log(maxPredictions);
             // 예측 결과를 표시할 레이블 컨테이너 초기화
             labelContainer = document.getElementById("label-container");
             for (let i = 0; i < maxPredictions; i++) {
@@ -65,7 +65,7 @@
 
         const imgElement = document.getElementById("uploadedImage");
         imgElement.src = URL.createObjectURL(file); // 파일을 이미지 경로로 변환 후 표시
-
+         console.log(imgElement.src);
         // 이미지 로드 완료 후 예측 수행
         imgElement.onload = function () {
             predict(imgElement); // 업로드된 이미지를 모델에 입력
